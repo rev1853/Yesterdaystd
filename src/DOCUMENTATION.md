@@ -152,6 +152,7 @@ users (creator) ──1:N──> albums ──1:N──> photos
 ├── pages/
 │   ├── HomePage.tsx             # Public landing page
 │   ├── LoginPage.tsx            # Authentication
+│   ├── SignupPage.tsx           # Client registration
 │   ├── AdminDashboard.tsx       # Admin control panel
 │   ├── CreatorDashboard.tsx     # Creator workspace
 │   ├── ClientDashboard.tsx      # Client portal
@@ -167,6 +168,7 @@ users (creator) ──1:N──> albums ──1:N──> photos
 │   ├── FullscreenViewer.tsx     # Photo fullscreen viewer
 │   ├── TestimonialForm.tsx      # Client testimonial/review form
 │   ├── TestimonialsList.tsx     # Display list of testimonials
+│   ├── UserManagement.tsx       # Admin user management component
 │   ├── CustomToast.tsx          # Toast notification
 │   └── ToastContainer.tsx       # Toast container
 └── styles/
@@ -179,7 +181,8 @@ users (creator) ──1:N──> albums ──1:N──> photos
 ```
 POST   /api/auth/login           # User login
 POST   /api/auth/logout          # User logout
-POST   /api/auth/register        # New user registration
+POST   /api/auth/register        # New user registration (client signup)
+POST   /api/auth/signup          # Client self-registration
 GET    /api/auth/me              # Get current user
 ```
 
@@ -187,8 +190,10 @@ GET    /api/auth/me              # Get current user
 ```
 GET    /api/users                # List all users (admin only)
 GET    /api/users/:id            # Get user by ID
+POST   /api/users                # Create new user (admin only - for adding admin/creator)
 PUT    /api/users/:id            # Update user
 DELETE /api/users/:id            # Delete user (admin only)
+GET    /api/users/stats          # Get user statistics by role (admin only)
 ```
 
 #### **Albums**
@@ -326,6 +331,8 @@ NODE_ENV=production
 This album management system provides a complete workflow for photographers to share albums with clients, receive photo selections, and manage their business efficiently. The system is designed with:
 
 - ✅ **Clear role separation** for Admin, Creator, and Client
+- ✅ **Client self-registration** with secure signup form (clients only)
+- ✅ **Admin user management** to add new admins and creators
 - ✅ **Secure invitation-based access** for private albums
 - ✅ **Intuitive photo selection interface** with fullscreen viewing
 - ✅ **Client testimonial/review system** with ratings and comments
@@ -335,8 +342,25 @@ This album management system provides a complete workflow for photographers to s
 
 The current implementation uses **mock data and React Context** for state management, making it ready for backend integration with minimal changes.
 
+### Key Features Added in v1.2
+
+**Client Signup:**
+- Public signup page for client registration
+- Form validation (name, email, password, confirm password)
+- Email uniqueness check
+- Automatic client role assignment
+- Redirect to login after successful signup
+
+**Admin User Management:**
+- Comprehensive user management dashboard for admins
+- View all users with role-based filtering
+- Add new admin or creator accounts
+- Delete users with confirmation
+- User statistics by role (admins, creators, clients)
+- User table with search and management capabilities
+
 ---
 
-**Version**: 1.1  
+**Version**: 1.2  
 **Last Updated**: November 22, 2025  
 **Font**: Inter (default throughout application)

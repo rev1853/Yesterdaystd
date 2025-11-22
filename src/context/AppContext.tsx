@@ -54,6 +54,7 @@ interface AppContextType {
   user: User | null;
   login: (email: string, password: string, role: UserRole) => void;
   logout: () => void;
+  signup: (name: string, email: string, password: string) => { success: boolean; message?: string };
   albums: Album[];
   addAlbum: (album: Omit<Album, 'id'>) => void;
   updateAlbum: (id: string, album: Partial<Album>) => void;
@@ -63,6 +64,7 @@ interface AppContextType {
   submissions: Submission[];
   submitSelection: (albumId: string, photoIds: string[]) => void;
   users: User[];
+  addUser: (user: Omit<User, 'id'>) => { success: boolean; message?: string };
   updateUser: (id: string, updates: Partial<User>) => void;
   deleteUser: (id: string) => void;
   testimonials: Testimonial[];
@@ -70,6 +72,14 @@ interface AppContextType {
   updateTestimonial: (id: string, updates: Partial<Testimonial>) => void;
   deleteTestimonial: (id: string) => void;
   getTestimonial: (id: string) => Testimonial | undefined;
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  toasts: Toast[];
+}
+
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -162,6 +172,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
   ]);
 
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
   const login = (email: string, password: string, role: UserRole) => {
     const mockUser: User = {
       id: role === 'admin' ? '1' : role === 'creator' ? '2' : '3',
@@ -174,6 +186,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null);
+  };
+
+  const signup = (name: string, email: string, password: string) => {
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      name,
+      email,
+      role: 'client',
+    };
+    setUsers([...users, newUser]);
+    return { success: true };
   };
 
   const addAlbum = (album: Omit<Album, 'id'>) => {
@@ -217,6 +240,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSubmissions([...submissions, newSubmission]);
   };
 
+  const addUser = (user: Omit<User, 'id'>) => {
+    const newUser: User = {
+      ...user,
+      id: `user-${Date.now()}`,
+    };
+    setUsers([...users, newUser]);
+    return { success: true };
+  };
+
   const updateUser = (id: string, updates: Partial<User>) => {
     setUsers(users.map(u => u.id === id ? { ...u, ...updates } : u));
   };
@@ -245,12 +277,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return testimonials.find(t => t.id === id);
   };
 
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    const newToast: Toast = {
+      id: `toast-${Date.now()}`,
+      message,
+      type,
+    };
+    setToasts([...toasts, newToast]);
+  };
+
   return (
     <AppContext.Provider
       value={{
         user,
         login,
         logout,
+        signup,
         albums,
         addAlbum,
         updateAlbum,
@@ -260,6 +302,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         submissions,
         submitSelection,
         users,
+        addUser,
         updateUser,
         deleteUser,
         testimonials,
@@ -267,6 +310,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateTestimonial,
         deleteTestimonial,
         getTestimonial,
+        showToast,
+        toasts,
       }}
     >
       {children}

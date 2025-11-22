@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Navbar from '../components/Navbar';
 import { User, Camera, Shield } from 'lucide-react';
@@ -117,7 +117,13 @@ export default function LoginPage() {
               Sign In
             </button>
 
-            <div className="text-center mt-6">
+            <div className="text-center mt-6 space-y-2">
+              <p className="font-['Inter'] text-[14px] text-neutral-400">
+                Don't have an account?{' '}
+                <Link to="/signup" className="text-neutral-100 hover:underline">
+                  Sign up as a client
+                </Link>
+              </p>
               <p className="font-['Inter'] text-[12px] text-neutral-500">
                 Demo mode: Any email/password combination works
               </p>

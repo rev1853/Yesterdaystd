@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AppProvider } from './context/AppContext';
 import { ToastProvider } from './components/ToastContainer';
 import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import HomePage from './pages/HomePage';
 import AdminDashboard from './pages/AdminDashboard';
 import CreatorDashboard from './pages/CreatorDashboard';
@@ -21,6 +22,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/creator" element={<CreatorDashboard />} />
             <Route path="/creator/create-album" element={<CreateAlbum />} />
