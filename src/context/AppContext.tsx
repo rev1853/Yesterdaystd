@@ -40,6 +40,16 @@ interface Submission {
   status: 'pending' | 'downloaded' | 'completed';
 }
 
+interface Testimonial {
+  id: string;
+  albumId: string;
+  clientId: string;
+  clientName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 interface AppContextType {
   user: User | null;
   login: (email: string, password: string, role: UserRole) => void;
@@ -55,6 +65,11 @@ interface AppContextType {
   users: User[];
   updateUser: (id: string, updates: Partial<User>) => void;
   deleteUser: (id: string) => void;
+  testimonials: Testimonial[];
+  addTestimonial: (testimonial: Omit<Testimonial, 'id'>) => void;
+  updateTestimonial: (id: string, updates: Partial<Testimonial>) => void;
+  deleteTestimonial: (id: string) => void;
+  getTestimonial: (id: string) => Testimonial | undefined;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -135,6 +150,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
   ]);
 
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([
+    {
+      id: 't1',
+      albumId: '1',
+      clientId: '3',
+      clientName: 'Jane Client',
+      rating: 5,
+      comment: 'Absolutely loved the photos! Thank you so much.',
+      createdAt: '2025-11-20T10:30:00Z',
+    },
+  ]);
+
   const login = (email: string, password: string, role: UserRole) => {
     const mockUser: User = {
       id: role === 'admin' ? '1' : role === 'creator' ? '2' : '3',
@@ -198,6 +225,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUsers(users.filter(u => u.id !== id));
   };
 
+  const addTestimonial = (testimonial: Omit<Testimonial, 'id'>) => {
+    const newTestimonial: Testimonial = {
+      ...testimonial,
+      id: `testimonial-${Date.now()}`,
+    };
+    setTestimonials([...testimonials, newTestimonial]);
+  };
+
+  const updateTestimonial = (id: string, updates: Partial<Testimonial>) => {
+    setTestimonials(testimonials.map(t => t.id === id ? { ...t, ...updates } : t));
+  };
+
+  const deleteTestimonial = (id: string) => {
+    setTestimonials(testimonials.filter(t => t.id !== id));
+  };
+
+  const getTestimonial = (id: string) => {
+    return testimonials.find(t => t.id === id);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -215,6 +262,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         users,
         updateUser,
         deleteUser,
+        testimonials,
+        addTestimonial,
+        updateTestimonial,
+        deleteTestimonial,
+        getTestimonial,
       }}
     >
       {children}

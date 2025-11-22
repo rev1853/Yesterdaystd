@@ -3,16 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Navbar from '../components/Navbar';
 import FullscreenViewer from '../components/FullscreenViewer';
-import { Check, Download, ArrowLeft, Expand } from 'lucide-react';
+import TestimonialForm from '../components/TestimonialForm';
+import TestimonialsList from '../components/TestimonialsList';
+import { Check, Download, ArrowLeft, Expand, MessageSquare, Star } from 'lucide-react';
 
 export default function AlbumDetail() {
   const { albumId } = useParams();
-  const { getAlbum, user, submitSelection } = useApp();
+  const { getAlbum, user, submitSelection, testimonials, addTestimonial, updateTestimonial, submissions } = useApp();
   const navigate = useNavigate();
   const album = getAlbum(albumId || '');
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [showSuccess, setShowSuccess] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
+  const [showTestimonialForm, setShowTestimonialForm] = useState(false);
 
   if (!album) {
     return (
@@ -58,6 +61,43 @@ export default function AlbumDetail() {
 
   const isCreator = user?.role === 'creator' && album.creatorId === user.id;
   const isClient = user?.role === 'client';
+
+  // Get existing testimonial for this client and album
+  const existingTestimonial = testimonials.find(
+    t => t.albumId === album.id && t.clientId === user?.id
+  );
+
+  // Get all testimonials for this album (for creator/admin view)
+  const albumTestimonials = testimonials.filter(t => t.albumId === album.id);
+
+  // Check if client has submitted photos for this album
+  const hasSubmitted = submissions.some(
+    s => s.albumId === album.id && s.clientId === user?.id
+  );
+
+  const handleTestimonialSubmit = (rating: number, comment: string) => {
+    if (!user) return;
+
+    if (existingTestimonial) {
+      // Update existing testimonial
+      updateTestimonial(existingTestimonial.id, {
+        rating,
+        comment,
+        createdAt: new Date().toISOString(),
+      });
+    } else {
+      // Add new testimonial
+      addTestimonial({
+        albumId: album.id,
+        clientId: user.id,
+        clientName: user.name,
+        rating,
+        comment,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    setShowTestimonialForm(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#0d0d0d]">
@@ -205,6 +245,105 @@ export default function AlbumDetail() {
           })}
         </div>
       </div>
+
+      {/* Testimonial Section - Only for clients who have submitted */}
+      {isClient && hasSubmitted && (
+        <div className="px-[138px] pb-[100px]">
+          <div className="max-w-4xl mx-auto">
+            {!showTestimonialForm && existingTestimonial ? (
+              // Display existing testimonial
+              <div className="bg-[#1e1e1e] rounded-xl p-8 border-2 border-neutral-800">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-blue-500/10 rounded-lg">
+                      <MessageSquare className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-['Inter'] font-extrabold text-[24px] text-neutral-100 tracking-[-1.2px] mb-1">
+                        Your Review
+                      </h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-5 h-5 ${
+                              star <= existingTestimonial.rating
+                                ? 'fill-yellow-500 text-yellow-500'
+                                : 'text-neutral-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowTestimonialForm(true)}
+                    className="px-4 py-2 bg-[#0d0d0d] hover:bg-neutral-900 text-neutral-300 border-2 border-neutral-800 hover:border-neutral-700 rounded-lg font-['Inter'] font-medium text-[14px] transition-colors"
+                  >
+                    Edit Review
+                  </button>
+                </div>
+                {existingTestimonial.comment && (
+                  <p className="font-['Inter'] text-[16px] text-neutral-300 leading-relaxed">
+                    {existingTestimonial.comment}
+                  </p>
+                )}
+              </div>
+            ) : !showTestimonialForm && !existingTestimonial ? (
+              // Prompt to add testimonial
+              <div className="bg-[#1e1e1e] rounded-xl p-8 border-2 border-neutral-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-blue-500/10 rounded-lg">
+                      <MessageSquare className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-['Inter'] font-extrabold text-[20px] text-neutral-100 tracking-[-1px] mb-1">
+                        Share Your Experience
+                      </h3>
+                      <p className="font-['Inter'] text-[14px] text-neutral-400">
+                        Help others by leaving a review for this album
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowTestimonialForm(true)}
+                    className="px-6 py-3 bg-neutral-100 hover:bg-neutral-200 text-[#0d0d0d] rounded-lg font-['Inter'] font-extrabold text-[16px] tracking-[-0.8px] transition-colors flex items-center gap-2"
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                    Write Review
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Show testimonial form
+              <TestimonialForm
+                albumId={album.id}
+                onSubmit={handleTestimonialSubmit}
+                onCancel={() => setShowTestimonialForm(false)}
+                existingTestimonial={existingTestimonial}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Testimonials Display - For creators to view all reviews */}
+      {isCreator && albumTestimonials.length > 0 && (
+        <div className="px-[138px] pb-[100px]">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8">
+              <h2 className="font-['Inter'] font-extrabold text-[40px] text-neutral-100 tracking-[-2px] mb-2">
+                Client Reviews
+              </h2>
+              <p className="font-['Inter'] text-[16px] text-neutral-400">
+                See what your clients think about this album
+              </p>
+            </div>
+            <TestimonialsList testimonials={albumTestimonials} albumTitle={album.title} />
+          </div>
+        </div>
+      )}
 
       {/* Fullscreen Viewer */}
       {fullscreenIndex !== null && (
